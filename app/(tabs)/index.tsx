@@ -11,11 +11,23 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import barkIndex from "../../data/bark_index.json";
 import { WOODS, Wood } from "../../data/woods";
+import { matchBarkPhoto } from "../../utils/barkMatcher";
+
+type BarkMatch = {
+  speciesKey: string;
+  confidence: number;
+  filename?: string;
+  distance?: number;
+};
 
 export default function HomeScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [status, setStatus] = useState<"idle" | "processing" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "processing" | "done" | "error">(
+    "idle"
+  );
   const [result, setResult] = useState<Wood | null>(null);
   const [showMore, setShowMore] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
@@ -41,6 +53,12 @@ export default function HomeScreen() {
 
     return () => clearTimeout(t);
   }, [hasImage]);
+
+  useEffect(() => {
+    // sanity log so you know it's loaded
+    const entryCount = (barkIndex as any)?.entries?.length ?? 0;
+    console.log("Bark index entries:", entryCount);
+  }, []);
 
   async function handleTakeImage() {
     if (!canInteract) return;
@@ -88,6 +106,19 @@ export default function HomeScreen() {
     setShowMore(false);
   }
 
+  function findWoodBySpeciesKey(speciesKey: string): Wood | null {
+    // Best: dataset id field equals folder name (oak_white, etc.)
+    const byId = WOODS.find((w: any) => w.id === speciesKey);
+    if (byId) return byId;
+
+    // Fallback: contains match in common name
+    const keyAsWords = speciesKey.replace(/_/g, " ").toLowerCase();
+    const byCommon = WOODS.find((w) =>
+      (w.common_name || "").toLowerCase().includes(keyAsWords)
+    );
+    return byCommon ?? null;
+  }
+
   function handleSubmitImage() {
     if (!photoUri || status === "processing") return;
 
@@ -95,13 +126,49 @@ export default function HomeScreen() {
     setStatusMessage("Identifying wood...");
     setResult(null);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        const randomMatch = WOODS[Math.floor(Math.random() * WOODS.length)];
-        setResult(randomMatch);
+        if (typeof matchBarkPhoto !== "function") {
+          console.log("ERROR: matchBarkPhoto import is wrong:", matchBarkPhoto);
+          setStatus("error");
+          setStatusMessage("Matcher not wired (import/export mismatch).");
+          return;
+        }
+
+        const matches = (await matchBarkPhoto(
+          photoUri,
+          barkIndex as any,
+          5
+        )) as BarkMatch[];
+
+        if (!matches || matches.length === 0) {
+          setStatus("error");
+          setStatusMessage("No match found. Try a different photo.");
+          return;
+        }
+
+        const top = matches[0];
+        console.log("Top match:", top);
+
+        const wood = findWoodBySpeciesKey(top.speciesKey);
+        if (!wood) {
+          setStatus("error");
+          setStatusMessage(`Matched "${top.speciesKey}" but not in WOODS yet.`);
+          return;
+        }
+
+        setResult(wood);
         setStatus("done");
-        setStatusMessage("Match found");
-      } catch {
+
+        const confPct = Number.isFinite(top.confidence)
+          ? (top.confidence * 100).toFixed(0)
+          : "??";
+
+        setStatusMessage(
+          `Match: ${top.speciesKey} (${confPct}%)`
+        );
+      } catch (e) {
+        console.log("Match error:", e);
         setStatus("error");
         setStatusMessage("Identification failed. Try again.");
       }
@@ -170,9 +237,9 @@ export default function HomeScreen() {
         {photoUri ? (
           <Image source={{ uri: photoUri }} style={styles.previewImage} />
         ) : (
-         <View style={styles.placeholderWrap}>
-  <Text style={styles.imageBoxText}>Drop an image of tree bark here</Text>
-</View>
+          <View style={styles.placeholderWrap}>
+            <Text style={styles.imageBoxText}>Drop an image of tree bark here</Text>
+          </View>
         )}
       </Pressable>
 
@@ -181,7 +248,10 @@ export default function HomeScreen() {
         <Text style={styles.buttonText}>Take Image of Bark</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={handlePickImage}>
+      <TouchableOpacity
+        style={[styles.button, styles.secondaryButton]}
+        onPress={handlePickImage}
+      >
         <Text style={styles.buttonText}>Choose Bark Image</Text>
       </TouchableOpacity>
 
@@ -190,7 +260,11 @@ export default function HomeScreen() {
           <View ref={submitAnchorRef} collapsable={false} />
           <Text style={styles.nextStepHint}>Next step: Submit your bark image</Text>
 
-          <TouchableOpacity style={styles.primarySubmitButton} onPress={handleSubmitImage}>
+          <TouchableOpacity
+            style={[styles.primarySubmitButton, !canSubmit && { opacity: 0.6 }]}
+            onPress={handleSubmitImage}
+            disabled={!canSubmit}
+          >
             <Text style={styles.primarySubmitText}>Submit Bark Image</Text>
           </TouchableOpacity>
 
@@ -305,7 +379,6 @@ const styles = StyleSheet.create({
   disabledContainer: { opacity: 0.7 },
   placeholderWrap: { alignItems: "center", paddingHorizontal: 18 },
   imageBoxText: { fontWeight: "bold" },
-  imageBoxHint: { fontSize: 12, color: "#666", marginTop: 4, textAlign: "center" },
   previewImage: { width: "100%", height: "100%" },
 
   button: {
@@ -335,33 +408,27 @@ const styles = StyleSheet.create({
   linkButton: { marginTop: 10 },
   linkButtonText: { fontWeight: "bold", color: "#1f7a1f" },
 
- statusBanner: {
-  alignSelf: "flex-start",
-  marginLeft: "5%",
-  marginTop: 12,
-  marginBottom: 6,
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-  borderRadius: 999,
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 6,
-  backgroundColor: "#eaf7ea",
-  borderWidth: 1,
-  borderColor: "#cfe8cf",
-},
+  statusBanner: {
+    alignSelf: "flex-start",
+    marginLeft: "5%",
+    marginTop: 12,
+    marginBottom: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#eaf7ea",
+    borderWidth: 1,
+    borderColor: "#cfe8cf",
+  },
 
   statusBannerProcessing: { backgroundColor: "#f3f3f3", borderColor: "#e0e0e0" },
   statusBannerSuccess: { backgroundColor: "#eef7ee", borderColor: "#cfe8cf" },
   statusBannerError: { backgroundColor: "#fdecee", borderColor: "#f2b8bf" },
-  statusBannerIcon: {
-  fontSize: 14,
-},
-  statusBannerText: {
-  fontWeight: "bold",
-  fontSize: 13,
-  color: "#145214",
-},
+  statusBannerIcon: { fontSize: 14 },
+  statusBannerText: { fontWeight: "bold", fontSize: 13, color: "#145214" },
   statusBannerTextError: { color: "#7a0012" },
 
   resultCard: {
