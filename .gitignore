@@ -48,3 +48,5 @@ data/*.xlsx
 
 # big image db
 assets/images/WoodWiz Image Database/
+assets/images/Android Icons/
+assets/images/React Native Icons/
