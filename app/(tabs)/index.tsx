@@ -16,6 +16,8 @@ import barkIndex from "../../data/bark_index.json";
 import { WOODS, Wood } from "../../data/woods";
 import { matchBarkPhoto } from "../../utils/barkMatcher";
 
+const DATASET_LABEL = "Dataset: Missouri v1.0 — 54 species, 260 images";
+
 type BarkMatch = {
   speciesKey: string;
   confidence: number;
@@ -177,7 +179,7 @@ export default function HomeScreen() {
 
         if (!matches || matches.length === 0) {
           setStatus("error");
-          setStatusMessage("No match found. Try a different photo.");
+          setStatusMessage("Invalid image — too dark or unclear.");
           return;
         }
 
@@ -186,14 +188,13 @@ export default function HomeScreen() {
         const top = matches[0];
         setMainMatch(top);
 
-        // Banner message stays tied to the MAIN match only
         const confPct = Number.isFinite(top.confidence)
           ? (top.confidence * 100).toFixed(0)
           : "??";
+
         setStatus("done");
         setStatusMessage(`Match: ${prettyValue(top.speciesKey)} (${confPct}%)`);
 
-        // Default detail card selection = main match
         setSelectedMatchAndResult(top);
       } catch (e) {
         console.log("Match error:", e);
@@ -247,7 +248,6 @@ export default function HomeScreen() {
   function AlternateMatches({ matches }: { matches: BarkMatch[] }) {
     if (!matches || matches.length < 2) return null;
 
-    // Only 2 alternates
     const alt = matches.slice(1, 3);
 
     return (
@@ -291,7 +291,6 @@ export default function HomeScreen() {
 
   return (
     <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Image
           source={require("../../assets/images/wood-header.png")}
@@ -300,7 +299,6 @@ export default function HomeScreen() {
         <Text style={styles.headerText}>WoodWiz</Text>
       </View>
 
-      {/* Image */}
       <Pressable
         style={[
           styles.imageBox,
@@ -319,7 +317,6 @@ export default function HomeScreen() {
         )}
       </Pressable>
 
-      {/* Buttons */}
       <TouchableOpacity style={styles.button} onPress={handleTakeImage}>
         <Text style={styles.buttonText}>Take Image of Bark</Text>
       </TouchableOpacity>
@@ -350,7 +347,6 @@ export default function HomeScreen() {
         </>
       )}
 
-      {/* Status Banner */}
       {status !== "idle" && (
         <Pressable
           disabled={!canReturnToMain}
@@ -386,13 +382,11 @@ export default function HomeScreen() {
         </Pressable>
       )}
 
-      {/* Result Card */}
       {result && (
         <View style={styles.resultCard}>
           <Text style={styles.resultTitle}>{result.common_name}</Text>
           <Text style={styles.resultSub}>{result.scientific_name}</Text>
 
-          {/* Confidence for the currently selected details */}
           {activeMatch && (
             <View style={{ marginTop: 10 }}>
               <View style={styles.altRow}>
@@ -446,6 +440,10 @@ export default function HomeScreen() {
         </View>
       )}
 
+      <View style={{ height: 24 }} />
+
+      <Text style={styles.datasetFooter}>{DATASET_LABEL}</Text>
+
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -467,7 +465,6 @@ const styles = StyleSheet.create({
   },
   headerBackground: { position: "absolute", width: "100%", height: "100%" },
 
-  // FONT A (Cinzel) for title
   headerText: {
     fontSize: 40,
     color: "#1f7a1f",
@@ -491,7 +488,6 @@ const styles = StyleSheet.create({
   disabledContainer: { opacity: 0.7 },
   placeholderWrap: { alignItems: "center", paddingHorizontal: 18 },
 
-  // Small text = Montserrat
   imageBoxText: { fontFamily: "Montserrat-Medium" },
 
   previewImage: { width: "100%", height: "100%" },
@@ -507,11 +503,13 @@ const styles = StyleSheet.create({
 
   secondaryButton: { backgroundColor: "#2f7d2f" },
 
-  // FONT A (Cinzel) for buttons
   buttonText: { color: "white", fontSize: 18, fontFamily: "Cinzel-SemiBold" },
 
-  // Small text = Montserrat
-  nextStepHint: { marginTop: 14, color: "#1f7a1f", fontFamily: "Montserrat-SemiBold" },
+  nextStepHint: {
+    marginTop: 14,
+    color: "#1f7a1f",
+    fontFamily: "Montserrat-SemiBold",
+  },
 
   primarySubmitButton: {
     marginTop: 10,
@@ -522,29 +520,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // FONT A (Cinzel) for primary button
-  primarySubmitText: { color: "white", fontSize: 18, fontFamily: "Cinzel-SemiBold" },
+  primarySubmitText: {
+    color: "white",
+    fontSize: 18,
+    fontFamily: "Cinzel-SemiBold",
+  },
 
   linkButton: { marginTop: 10 },
 
-  // Small text = Montserrat
   linkButtonText: { color: "#1f7a1f", fontFamily: "Montserrat-SemiBold" },
 
-  statusBanner: {
-    alignSelf: "flex-start",
-    marginLeft: "5%",
-    marginTop: 12,
-    marginBottom: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#eaf7ea",
-    borderWidth: 1,
-    borderColor: "#cfe8cf",
-  },
+statusBanner: {
+  alignSelf: "center",
+  marginTop: 12,
+  marginBottom: 6,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 999,
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 6,
+  backgroundColor: "#eaf7ea",
+  borderWidth: 1,
+  borderColor: "#cfe8cf",
+},
 
   statusBannerClickable: {
     borderColor: "#1f7a1f",
@@ -559,8 +558,11 @@ const styles = StyleSheet.create({
 
   statusBannerIcon: { fontSize: 14 },
 
-  // Small text = Montserrat
-  statusBannerText: { fontSize: 13, color: "#145214", fontFamily: "Montserrat-SemiBold" },
+  statusBannerText: {
+    fontSize: 13,
+    color: "#145214",
+    fontFamily: "Montserrat-SemiBold",
+  },
   statusBannerTextError: { color: "#7a0012" },
 
   resultCard: {
@@ -573,10 +575,8 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
 
-  // Titles = Cinzel
   resultTitle: { fontSize: 22, fontFamily: "Cinzel-SemiBold" },
 
-  // Small/secondary = Montserrat
   resultSub: {
     marginTop: 2,
     marginBottom: 8,
@@ -587,7 +587,6 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, backgroundColor: "#eee", marginVertical: 10 },
 
-  // Small headings = Montserrat
   quickFactsTitle: { marginBottom: 8, fontFamily: "Montserrat-SemiBold" },
 
   factsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
@@ -663,4 +662,12 @@ const styles = StyleSheet.create({
   },
 
   altPct: { color: "#145214", fontFamily: "Montserrat-SemiBold" },
+
+  datasetFooter: {
+    marginTop: 8,
+    fontSize: 12,
+    color: "#777",
+    fontFamily: "Montserrat-Regular",
+    textAlign: "center",
+  },
 });
