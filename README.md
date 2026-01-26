@@ -1,70 +1,73 @@
-📱 WoodWiz — Bark-Based Wood Identification App (Proof of Concept)
+📱 WoodWiz — Bark-Based Wood Identification (Proof of Concept)
 
-WoodWiz is a mobile proof-of-concept application designed to demonstrate the technical feasibility of a bark-based wood species identification tool. The project is being developed as part of Project & Portfolio IV and serves as the foundation for a larger final application.
+WoodWiz is a mobile proof-of-concept application that demonstrates the technical feasibility of identifying wood species using images of tree bark. The project is being developed as part of Project & Portfolio IV and serves as the foundation for a larger, production-grade application.
 
 This repository contains the code-only academic version of the project for evaluation purposes.
 
 🎯 Project Goal
 
-The goal of WoodWiz is to provide a simple, fast, and field-friendly experience where a user can:
+WoodWiz aims to provide a simple, fast, field-friendly experience where a user can:
 
-Select or capture an image of tree bark
+Capture or select an image of tree bark
 
-Submit the image
+Submit the image for identification
 
-Receive structured information about the identified wood species
+Receive structured information about the matched wood species
 
-The user experience is intentionally minimal to prioritize usability outdoors and reduce unnecessary complexity.
+The interface is intentionally minimal and high-contrast to support real-world outdoor use (sunlight, gloves, distractions, quick interactions).
 
 🧠 Technologies Used
 
-This project currently uses the following technologies, all of which are demonstrated in the working prototype:
+All technologies listed below are actively implemented in the working prototype:
 
-Expo – Cross-platform development environment
+Expo — Cross-platform mobile development environment
 
-React Native – Mobile UI framework
+React Native — Mobile UI framework
 
-TypeScript – Strongly typed structure for maintainability
+TypeScript — Strong typing for maintainability and scalability
 
-Expo ImagePicker API – Camera and gallery image selection
+Expo ImagePicker API — Camera and gallery image capture
 
-JSON Dataset – Structured species data converted from research spreadsheets
+JSON Dataset — Structured species dataset converted from research spreadsheets
 
-State-driven UI – Dynamic rendering of results based on user input
+State-driven UI — Dynamic rendering based on user interaction and match results
 
-✅ Current Features (Proof of Concept)
+This project demonstrates the ability to combine real device input, structured data, and dynamic UI behavior into a functional system.
 
-The current build demonstrates real functionality, not mockups.
+✅ Current Features (Working Prototype)
 
-Image selection from camera or gallery
+This is not a mockup — all features below are fully implemented:
+
+Capture images using device camera
+
+Select images from device gallery
 
 Live image preview after selection
 
-Submission flow for processing user input
+End-to-end submission flow
+
+Real bark matching logic using local image dataset
 
 Dynamic results screen populated from structured dataset
 
-Expandable "Show More / Show Less" result sections
+Confidence indicator and alternate match suggestions
 
-Functional state changes and UI feedback
+Expandable result sections (Show More / Show Less)
 
-Real dataset integrated into the app (JSON)
+Dataset metadata displayed in UI (Missouri v1.0 — 54 species, 260 images)
 
-This confirms that all core technologies required for the final project work together meaningfully.
+User feedback for low-quality or invalid images
+
+This confirms that the full technical pipeline (input → processing → structured output → UI) is operational.
 
 📂 Project Structure Overview
-
-app/ – Main application screens and routing
-
-components/ – Reusable UI components
-
-data/ – JSON dataset and structured data logic
-
-hooks/ – Custom hooks for theme/state handling
-
-constants/ – App-wide configuration values
-
-scripts/ – Project utility scripts
+app/        → Application screens and routing  
+components/ → Reusable UI components  
+data/       → JSON dataset and structured species data  
+hooks/      → Custom hooks for state/theme logic  
+constants/  → App-wide configuration  
+scripts/    → Dataset processing utilities  
+utils/      → Matching logic and processing helpers  
 
 📌 Development Status
 
@@ -72,38 +75,46 @@ This repository represents the Proof of Concept milestone.
 
 Planned future development includes:
 
-Improved matching logic
+Improved matching accuracy
 
 Machine learning model integration
+
+Dataset expansion (self-collected bark images)
 
 Offline caching
 
 Performance optimizations
 
-UI refinement
+UX refinement
 
-App branding and deployment builds
+Branding and production builds
 
-All development planning, documentation artifacts, and research are tracked in Trello.
+📋 Project Management & Documentation
 
-📋 Project Management
+All development planning, artifacts, and workflow are tracked using Trello to demonstrate structured project management.
 
-Development planning, artifacts, and roadmap are maintained using Trello to demonstrate structured workflow and documentation.
-
-Trello includes:
+The board includes:
 
 Feature planning
 
-Technologies used
+Technology documentation
 
 Research references
 
-Prior assignment artifacts
+Assignment artifacts
 
-UX decisions
+UX decisions and rationale
 
-Problems solved during development
+Problems encountered and solved
 
-📎 Notes
+📎 Notes on Assets
 
-Large binary datasets (such as bark image libraries) are intentionally excluded from this repository to keep the project lightweight and focused on code evaluation. These assets are maintained locally for development.
+Large binary datasets (such as bark image libraries) are intentionally excluded from this repository to keep the project lightweight and focused on code evaluation.
+
+All datasets used for development are maintained locally.
+
+✍️ Author
+
+N.A. Keilholz
+Computer Engineering — Full Sail University
+Project & Portfolio IV (AI Concentration)
